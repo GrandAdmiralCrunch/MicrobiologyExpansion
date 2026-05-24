@@ -12,7 +12,7 @@ A mod for KSP that adds microbial life to Kerbin and the world's beyond
 - Each bioscan randomly selects one eligible microbe from the current biome - discovering a new one awards science
 
 - ## Microbiology Codex UI
-- An in-game codex window that displays all microbes with their icon, category, home planet, description, and science value.
+- An in-game codex window that displays all microbes with their icon, category, home planet, biome(s), description, and science value.
 
 ## Installation
  
