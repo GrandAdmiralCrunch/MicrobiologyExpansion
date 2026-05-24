@@ -25,3 +25,15 @@ A mod for KSP that adds microbial life to Kerbin and the world's beyond
 ## Compatibility
  
 - Should be compatible with most Mods, though microbes will only spawn on planets defined in `Microbes.cfg`.
+
+
+## Work In Progress
+- Unique Bioscanner Part
+- Hazard Effects
+- Sample Collector Part
+- Science Balance
+- Microbe interactions with other Microbes (mostly eating or getting eaten)
+- Microscope EVA Part
+- Cross-Contamination/Planet Seeding
+- FF Ribbons
+- Moar Microbes
