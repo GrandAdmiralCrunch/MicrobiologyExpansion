@@ -35,5 +35,6 @@ A mod for KSP that adds microbial life to Kerbin and the world's beyond
 - Microbe interactions with other Microbes (mostly eating or getting eaten)
 - Microscope EVA Part
 - Cross-Contamination/Planet Seeding
+- Contracts
 - FF Ribbons
 - Moar Microbes
