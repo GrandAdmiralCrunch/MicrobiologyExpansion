@@ -1,0 +1,24 @@
+{
+    "spec_version": "v1.4",
+    "identifier": "MicrobiologyExpansion",
+    "name": "Microbiology Expansion",
+    "abstract": "Discover, sample and catalogue microbial life across the Kerbol system, and uncover each world's food web.",
+    "author": "GrandAdmiralCrunch",
+    "$kref": "#/ckan/github/GrandAdmiralCrunch/MicrobiologyExpansion",
+    "$vref": "#/ckan/ksp-avc",
+    "license": "MIT",
+    "tags": [ "plugin", "parts", "science", "config" ],
+    "resources": {
+        "repository": "https://github.com/GrandAdmiralCrunch/MicrobiologyExpansion",
+        "bugtracker": "https://github.com/GrandAdmiralCrunch/MicrobiologyExpansion/issues"
+    },
+    "depends": [
+        { "name": "ModuleManager" }
+    ],
+    "suggests": [
+        { "name": "FinalFrontier" }
+    ],
+    "install": [
+        { "find": "MicrobiologyExpansion", "install_to": "GameData" }
+    ]
+}

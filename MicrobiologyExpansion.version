@@ -1,0 +1,14 @@
+{
+  "NAME": "Microbiology Expansion",
+  "URL": "https://raw.githubusercontent.com/GrandAdmiralCrunch/MicrobiologyExpansion/main/MicrobiologyExpansion.version",
+  "DOWNLOAD": "https://github.com/GrandAdmiralCrunch/MicrobiologyExpansion/releases",
+  "GITHUB": {
+    "USERNAME": "GrandAdmiralCrunch",
+    "REPOSITORY": "MicrobiologyExpansion",
+    "ALLOW_PRE_RELEASE": false
+  },
+  "VERSION": { "MAJOR": 0, "MINOR": 2, "PATCH": 0, "BUILD": 0 },
+  "KSP_VERSION": { "MAJOR": 1, "MINOR": 12, "PATCH": 5 },
+  "KSP_VERSION_MIN": { "MAJOR": 1, "MINOR": 12, "PATCH": 0 },
+  "KSP_VERSION_MAX": { "MAJOR": 1, "MINOR": 12, "PATCH": 99 }
+}
