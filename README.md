@@ -77,19 +77,5 @@ To add life to a new planet, also add a `PLANET_BIOSCAN { planet = MyPlanet  det
 - Planet pack support
 - Moar microbes
 
-## Building from source
-The repository is laid out like this:
-
-- `Source/`: the C# plugin (Visual Studio solution and project, .NET Framework 4.8)
-- `GameData/MicrobiologyExpansion/`: configs, parts, icons and patches, exactly as installed
-
-To build the plugin:
-
-1. Open `Source/MicrobiologyExpansion.sln` in Visual Studio 2022.
-2. The project references DLLs from `KSP_x64_Data/Managed` in your KSP install. It assumes the default Steam path. If your KSP is elsewhere, set a `KSPDIR` environment variable to your KSP folder, or build with `msbuild /p:KSPDIR="D:\Games\KSP"`.
-3. A Debug build writes `MicrobiologyExpansion.dll` straight into `$(KSPDIR)/GameData/MicrobiologyExpansion/Plugins/`. A Release build writes to `Source/MicrobiologyExpansion/bin/Release/`.
-
-KSP and Unity DLLs aren't included in this repository and can't be redistributed.
-
 ## License
 MIT. See `LICENSE`.
