@@ -1,0 +1,15 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Compiled plugin goes in the release zip, not the repo
+*.dll
+*.pdb
+
+# Packaged release zips are attached to GitHub Releases instead
+*.zip
