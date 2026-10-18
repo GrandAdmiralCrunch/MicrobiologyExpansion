@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 public class MicroBioscanModule : PartModule
@@ -7,9 +8,18 @@ public class MicroBioscanModule : PartModule
     [KSPField(isPersistant = false, guiActive = true, guiName = "Bioscan Status")]
     public string status = "Ready";
 
+    // Tunable per part from config, e.g. in the part's MODULE node or an MM patch:
+    //   bioscanCooldown = 6     (seconds between scans)
+    //   ecPerScan = 30          (ElectricCharge used per scan)
+    [KSPField]
+    public float bioscanCooldown = 6f;
+
+    [KSPField]
+    public double ecPerScan = 30.0;
+
     private float lastRunTime = 0f;
-    private const float COOLDOWN = 6f;
-    private const double EC_COST = 30.0;
+    private float COOLDOWN => Mathf.Max(0f, bioscanCooldown);
+    private double EC_COST => Math.Max(0.0, ecPerScan);
 
     // Detection chances loaded from PLANET_BIOSCAN nodes in cfg
     private static Dictionary<string, float> planetDetectionChances = null;
@@ -33,7 +43,7 @@ public class MicroBioscanModule : PartModule
 
             if (string.IsNullOrEmpty(planet) || string.IsNullOrEmpty(chanceStr)) continue;
 
-            if (float.TryParse(chanceStr, out float chance))
+            if (float.TryParse(chanceStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float chance))
             {
                 planetDetectionChances[planet] = Mathf.Clamp01(chance);
                 Debug.Log($"[Microbiology Expansion] Loaded detection chance for {planet}: {chance}");
@@ -224,7 +234,7 @@ public class MicroBioscanModule : PartModule
                 default:
                     status = "New microbe detected!";
                     ScreenMessages.PostScreenMessage(
-                        $"<color=lime><b>NEW DISCOVERY: {discovered.Name}</b></color>",
+                        $"<color=#88FF88><b>NEW DISCOVERY: {discovered.Name}</b></color>",
                         6f, ScreenMessageStyle.UPPER_CENTER);
                     ScreenMessages.PostScreenMessage(
                         "<color=#FFAA00>Positive biosignature confirmed!</color>",

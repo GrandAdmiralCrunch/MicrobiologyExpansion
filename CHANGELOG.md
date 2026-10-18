@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.2.1 — Bugfix patch
+
+### Fixes
+- **Canyon microbes no longer spawn everywhere.** Biomes were matched with a text search, and "Canyon" contains the word "any", so microbes listed in a canyon biome could be found anywhere on their planet. This affected Lithotroph Münis (Mun), Halite Dresii and Lithosilicus Dresii (Dres), Cryoextrema Eelooii (Eeloo), and the Western Canyon food web on Duna (Perchlorovore Dunae, Crustose Lichen, Plasmodium Dunae, Dinoflagella Dunae). Biomes are now matched exactly, so "Highlands" also no longer matches "Polar Highlands".
+- **Sporothrix Laythensis and Blastomyces Laythensis can be found on the surface and in flight.** A comma-separated `situation` (e.g. `Surface,InFlight`) was read as a single combined value that came out as InSpace, so they could only be found from orbit. Each listed situation is now read on its own.
+- **Jool and Sun microbes can now be found.** Jool and the Sun have no biomes, and the bioscan gave up when there was no biome. Methanoxus Sporum, Aerobacter Joolii, Joolmoeba and Stellarsilicus were unobtainable. On bodies without biomes, microbes with `biomes = Any` are now found normally.
+- Olivine Microcrystal Fragment listed a "Slopes" biome on Duna, and Fossilized Microbial Shells and Abiotic Shell listed "Northeast Basin". Duna has neither biome, so those entries are removed.
+- Sample results text for Kerbin's Deserts biome now shows (the key was misspelled), and duplicate Mountains and Grasslands entries were removed.
+- Config numbers (`spawnChance`, `scienceValue`, `detectionChance`) are now read the same way on every system language, including ones that use a comma for decimals.
+- **Final Frontier ribbons now load.** The ribbon pack used the wrong file format, so Final Frontier loaded none of the ribbons and logged a warning for every line. The 12 ribbons with artwork now show up and can be awarded from the Hall of Fame; the rest are listed but switched off until their images exist. Thanks to **celino** for the converted file (#2).
+- "NEW DISCOVERY" and "Sample collected" messages no longer show a stray `<color=lime>` tag; KSP doesn't recognize that color name. Thanks to **celino** for the report (#3).
+- The MBX-9 Microbioscanner (radial) no longer sinks into the part it's attached to. Its attach point now sits on the back of the model. Thanks to **celino** for the report (#4).
+
+### For config authors
+- **New config check.** When the game loads, every MICROBE is checked against the planets in your game. KSP.log gets a `Config warning` line for unknown planets, biome names a planet doesn't have, specific biomes on a planet with no biomes, unknown trophic prey, and unknown situations. Planet pack authors: search KSP.log for `[Microbiology Expansion] Config`.
+- Biome names now ignore case and spaces: `Ice Caps`, `IceCaps` and `ice caps` all match.
+- The bioscanner's recharge time and power cost can now be set per part: `bioscanCooldown` (seconds, default 6) and `ecPerScan` (ElectricCharge, default 30) in the `MicroBioscanModule` node, so Module Manager patches can rebalance it (#5).
+
+### Compatibility
+- Saves from v0.2.0 are fully compatible.
+
 ## v0.2.0 — "Viking" update
 
 ### New parts

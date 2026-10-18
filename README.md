@@ -73,7 +73,7 @@ To add life to a new planet, also add a `PLANET_BIOSCAN { planet = MyPlanet  det
 - Sample collector part and EVA microscope
 - Cross-contamination and planet seeding
 - Contracts
-- Final Frontier ribbons
+- Automatic Final Frontier ribbon awards (the custom ribbons already ship and can be awarded by hand in Final Frontier)
 - Planet pack support
 - Moar microbes
 

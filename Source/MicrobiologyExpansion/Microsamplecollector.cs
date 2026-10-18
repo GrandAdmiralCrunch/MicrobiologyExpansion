@@ -196,7 +196,7 @@ public class MicroSampleCollector : PartModule
                 : $"{count} samples held";
 
             ScreenMessages.PostScreenMessage(
-                $"<color=lime>Sample collected: <b>{microbe.name}</b></color>",
+                $"<color=#88FF88>Sample collected: <b>{microbe.name}</b></color>",
                 5f, ScreenMessageStyle.UPPER_CENTER);
             ScreenMessages.PostScreenMessage(
                 $"<color=#FFAA00>Return to KSC to recover {scienceValue:F0} science.</color>",
@@ -222,7 +222,7 @@ public class MicroSampleCollector : PartModule
                 ? $"1 sample: {microbe.name}"
                 : $"{count} samples held";
             ScreenMessages.PostScreenMessage(
-                $"<color=lime>Sample collected: <b>{microbe.name}</b></color>",
+                $"<color=#88FF88>Sample collected: <b>{microbe.name}</b></color>",
                 5f, ScreenMessageStyle.UPPER_CENTER);
         }
 

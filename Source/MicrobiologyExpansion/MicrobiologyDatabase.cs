@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 // =============================================================================
@@ -71,11 +72,23 @@ public class MicrobiologyDatabase : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         LoadMicrobesFromConfig();
         GameEvents.onVesselRecovered.Add(OnVesselRecovered);
+        GameEvents.onLevelWasLoadedGUIReady.Add(OnLevelLoaded);
+    }
+
+    private void Start()
+    {
+        ValidateMicrobeConfigs();
+    }
+
+    private void OnLevelLoaded(GameScenes scene)
+    {
+        ValidateMicrobeConfigs();
     }
 
     private void OnDestroy()
     {
         GameEvents.onVesselRecovered.Remove(OnVesselRecovered);
+        GameEvents.onLevelWasLoadedGUIReady.Remove(OnLevelLoaded);
 
         if (Instance == this)
             Instance = null;
@@ -130,6 +143,76 @@ public class MicrobiologyDatabase : MonoBehaviour
         }
 
         Debug.Log($"[Microbiology Expansion] Loaded {AllMicrobes.Count} microbes from config.");
+    }
+
+    // -------------------------------------------------------------------------
+    // Config validation
+    // Checks every MICROBE against the planets actually loaded in this game
+    // (stock or planet pack) and logs a warning for anything that can never
+    // spawn: unknown planets, biome names the planet doesn't have, specific
+    // biomes on a planet with no biome map, and unknown trophic prey.
+    // Runs once, as soon as the celestial bodies are available.
+    // -------------------------------------------------------------------------
+
+    private static bool configsValidated = false;
+
+    private void ValidateMicrobeConfigs()
+    {
+        if (configsValidated) return;
+        if (FlightGlobals.Bodies == null || FlightGlobals.Bodies.Count == 0) return;
+        configsValidated = true;
+
+        int warnings = 0;
+        foreach (Microbe m in AllMicrobes)
+        {
+            CelestialBody body = FlightGlobals.Bodies.Find(b =>
+                b.bodyName.Equals(m.homePlanet, StringComparison.OrdinalIgnoreCase));
+            if (body == null)
+            {
+                Debug.LogWarning($"[Microbiology Expansion] Config warning: '{m.name}' has homePlanet '{m.homePlanet}', which is not a body in this game. It will never spawn.");
+                warnings++;
+                continue;
+            }
+
+            if (!m.AllowsAnyBiome)
+            {
+                if (body.BiomeMap == null || body.BiomeMap.Attributes == null || body.BiomeMap.Attributes.Length == 0)
+                {
+                    Debug.LogWarning($"[Microbiology Expansion] Config warning: '{m.name}' lists specific biomes, but {body.bodyName} has no biomes. Use 'biomes = Any'. It will never spawn.");
+                    warnings++;
+                }
+                else
+                {
+                    foreach (string biome in m.BiomeList)
+                    {
+                        bool found = false;
+                        foreach (CBAttributeMapSO.MapAttribute att in body.BiomeMap.Attributes)
+                        {
+                            if (Microbe.BiomeNamesMatch(biome, att.name)) { found = true; break; }
+                        }
+                        if (!found)
+                        {
+                            Debug.LogWarning($"[Microbiology Expansion] Config warning: '{m.name}' lists biome '{biome}', which {body.bodyName} does not have. That entry will never match.");
+                            warnings++;
+                        }
+                    }
+                }
+            }
+
+            foreach (string prey in m.trophicRelations)
+            {
+                if (!AllMicrobes.Exists(x => x.name.Equals(prey, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Debug.LogWarning($"[Microbiology Expansion] Config warning: '{m.name}' lists trophic prey '{prey}', which is not a defined microbe.");
+                    warnings++;
+                }
+            }
+        }
+
+        if (warnings == 0)
+            Debug.Log($"[Microbiology Expansion] Config check passed: all {AllMicrobes.Count} microbes have valid planets and biomes.");
+        else
+            Debug.LogWarning($"[Microbiology Expansion] Config check found {warnings} problem(s). Search KSP.log for 'Config warning'.");
     }
 
     // -------------------------------------------------------------------------
@@ -352,14 +435,13 @@ public class MicrobiologyDatabase : MonoBehaviour
     public List<Microbe> GetMicrobesInBiome(string planetName, string biomeName,
         SituationRequirement situation = SituationRequirement.Any)
     {
-        if (string.IsNullOrEmpty(biomeName)) return new List<Microbe>();
-
+        // biomeName is empty on bodies with no biome map (Jool, the Sun).
+        // There, only microbes with 'biomes = Any' can be found.
         return AllMicrobes.FindAll(m =>
             (string.IsNullOrEmpty(planetName) ||
                 m.homePlanet.Equals(planetName, StringComparison.OrdinalIgnoreCase)) &&
-            (m.biomes.ToLower().Contains(biomeName.ToLower()) ||
-                m.biomes.ToLower().Contains("any")) &&
-            (m.situation == SituationRequirement.Any || m.situation == situation)
+            m.MatchesBiome(biomeName) &&
+            m.AllowsSituation(situation)
         );
     }
 
@@ -495,7 +577,10 @@ public class Microbe
     public float scienceValue;
     public string iconPath;
     public HazardLevel hazardLevel;
-    public SituationRequirement situation;
+    public SituationRequirement situation; // first listed situation (kept for display/compatibility)
+    public HashSet<SituationRequirement> allowedSituations = new HashSet<SituationRequirement>();
+    public List<string> BiomeList = new List<string>();
+    public bool AllowsAnyBiome = true;
     public List<string> trophicRelations = new List<string>(); // names of microbes this one consumes
 
     private static readonly Dictionary<HazardLevel, float> HazardMultipliers =
@@ -517,17 +602,56 @@ public class Microbe
         flavorText = node.GetValue("flavorText") ?? "No data available.";
         iconPath = node.GetValue("icon") ?? "";
 
-        float.TryParse(node.GetValue("spawnChance"), out spawnChance);
-        float.TryParse(node.GetValue("scienceValue"), out scienceValue);
+        // Config files always use '.' as the decimal separator, whatever the player's locale
+        float.TryParse(node.GetValue("spawnChance"), NumberStyles.Float, CultureInfo.InvariantCulture, out spawnChance);
+        float.TryParse(node.GetValue("scienceValue"), NumberStyles.Float, CultureInfo.InvariantCulture, out scienceValue);
         if (scienceValue <= 0) scienceValue = 25f;
 
         string hazardStr = node.GetValue("hazardLevel") ?? "Safe";
         if (!Enum.TryParse(hazardStr, true, out hazardLevel))
             hazardLevel = HazardLevel.Safe;
 
+        // Biomes: comma-separated list, or Any
+        BiomeList.Clear();
+        AllowsAnyBiome = false;
+        foreach (string entry in biomes.Split(','))
+        {
+            string trimmed = entry.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+            if (trimmed.Equals("Any", StringComparison.OrdinalIgnoreCase)) AllowsAnyBiome = true;
+            else BiomeList.Add(trimmed);
+        }
+        if (BiomeList.Count == 0) AllowsAnyBiome = true;
+
+        // Situations: comma-separated list (e.g. "Surface,InFlight"), or Any.
+        // Each value is parsed on its own. Enum.TryParse on the whole string
+        // would combine the values numerically (Surface + InFlight = InSpace).
+        allowedSituations.Clear();
+        situation = SituationRequirement.Any;
         string situationStr = node.GetValue("situation") ?? "Any";
-        if (!Enum.TryParse(situationStr, true, out situation))
+        foreach (string entry in situationStr.Split(','))
+        {
+            string trimmed = entry.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+            SituationRequirement parsed;
+            if (Array.Exists(Enum.GetNames(typeof(SituationRequirement)),
+                    n => n.Equals(trimmed, StringComparison.OrdinalIgnoreCase)))
+            {
+                parsed = (SituationRequirement)Enum.Parse(typeof(SituationRequirement), trimmed, true);
+                if (allowedSituations.Count == 0) situation = parsed;
+                allowedSituations.Add(parsed);
+            }
+            else
+            {
+                Debug.LogWarning($"[Microbiology Expansion] Config warning: '{name}' has unknown situation '{trimmed}'. Valid values: Surface, InFlight, InSpace, Any.");
+            }
+        }
+        if (allowedSituations.Count == 0 || allowedSituations.Contains(SituationRequirement.Any))
+        {
+            allowedSituations.Clear();
+            allowedSituations.Add(SituationRequirement.Any);
             situation = SituationRequirement.Any;
+        }
 
         // Parse comma-separated trophic relations
         string trophicStr = node.GetValue("trophicRelations") ?? "";
@@ -543,6 +667,31 @@ public class Microbe
         }
 
         return !string.IsNullOrEmpty(name);
+    }
+
+    public bool AllowsSituation(SituationRequirement current)
+    {
+        return allowedSituations.Contains(SituationRequirement.Any) || allowedSituations.Contains(current);
+    }
+
+    // Exact match against each listed biome (not a substring search, so
+    // "Canyons" no longer matches "any" and "Highlands" no longer matches
+    // "Polar Highlands"). An empty biomeName means the body has no biomes.
+    public bool MatchesBiome(string biomeName)
+    {
+        if (AllowsAnyBiome) return true;
+        if (string.IsNullOrEmpty(biomeName)) return false;
+        foreach (string b in BiomeList)
+            if (BiomeNamesMatch(b, biomeName)) return true;
+        return false;
+    }
+
+    // Biome names are compared ignoring case and spaces, so "Ice Caps",
+    // "IceCaps" and "ice caps" are all the same biome.
+    public static bool BiomeNamesMatch(string a, string b)
+    {
+        if (a == null || b == null) return false;
+        return string.Equals(a.Replace(" ", ""), b.Replace(" ", ""), StringComparison.OrdinalIgnoreCase);
     }
 
     public string Name => name;
