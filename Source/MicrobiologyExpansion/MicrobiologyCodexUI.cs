@@ -26,6 +26,10 @@ public class MicrobiologyCodexUI : MonoBehaviour
     // Scroll memory — normalized 0..1 where 1 = top
     private float savedScrollPosition = 1f;
 
+    // Entry to scroll to on the next build (set by ShowMicrobe after a new discovery)
+    private Microbe focusMicrobe;
+    private DialogGUIBase focusItem;
+
     private const string UNKNOWN_ICON_PATH = "MicrobiologyExpansion/Icons/unknown_microbe";
 
     private void Awake()
@@ -96,11 +100,37 @@ public class MicrobiologyCodexUI : MonoBehaviour
         isOpen = false;
     }
 
-    // Called internally by bioscan discovery — opens if not already open
+    // Called by the part's "Open Codex" action
     public void ToggleCodex()
     {
         if (isOpen) CloseCodex();
         else OpenCodex();
+    }
+
+    // Called after a new discovery: opens the codex, or rebuilds it if it is already open,
+    // scrolled to that microbe's entry
+    public void ShowMicrobe(Microbe microbe)
+    {
+        if (MicrobiologyDatabase.Instance == null) return;
+        if (!IsValidScene()) return;
+
+        focusMicrobe = microbe;
+
+        // Clear the filters if they would hide the new entry
+        if (microbe != null && !GetFilteredSortedMicrobes().Contains(microbe))
+        {
+            currentHazardFilter = HazardFilter.All;
+            currentPlanetFilter = "All";
+        }
+
+        if (isOpen) RefreshDialog();
+        else OpenCodex();
+    }
+
+    // Rebuilds the codex if it is open, e.g. after the lab reveals new data
+    public void Refresh()
+    {
+        if (isOpen) RefreshDialog();
     }
 
     // -------------------------------------------------------------------------
@@ -360,14 +390,17 @@ public class MicrobiologyCodexUI : MonoBehaviour
                     descLabel = "<color=#888888>???</color>";
                 }
 
-                scrollItems.Add(new DialogGUIHorizontalLayout(
+                DialogGUIHorizontalLayout entry = new DialogGUIHorizontalLayout(
                     new DialogGUIImage(new Vector2(128f, 128f), Vector2.zero, Color.white, iconTex),
                     new DialogGUISpace(15),
                     new DialogGUIVerticalLayout(
                         new DialogGUILabel(nameLabel, false, false),
                         new DialogGUILabel(descLabel, false, false)
                     )
-                ));
+                );
+                if (microbe == focusMicrobe)
+                    focusItem = entry;
+                scrollItems.Add(entry);
                 scrollItems.Add(new DialogGUISpace(10));
             }
         }
@@ -440,7 +473,37 @@ public class MicrobiologyCodexUI : MonoBehaviour
         }
 
         if (mainScroll != null)
-            mainScroll.verticalNormalizedPosition = savedScrollPosition;
+        {
+            if (focusItem != null && focusItem.uiItem != null)
+                ScrollTo(mainScroll, focusItem.uiItem.GetComponent<RectTransform>());
+            else
+                mainScroll.verticalNormalizedPosition = savedScrollPosition;
+        }
+
+        focusMicrobe = null;
+        focusItem = null;
+    }
+
+    // Puts the top of the item at the top of the visible area (or as close as the list allows)
+    private static void ScrollTo(ScrollRect scroll, RectTransform item)
+    {
+        if (item == null || scroll.content == null) return;
+
+        RectTransform content = scroll.content;
+        LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        RectTransform viewport = scroll.viewport != null ? scroll.viewport : (RectTransform)scroll.transform;
+        float scrollable = content.rect.height - viewport.rect.height;
+        if (scrollable <= 0f) return;
+
+        // World corners: [0] bottom-left, [1] top-left
+        Vector3[] contentCorners = new Vector3[4];
+        Vector3[] itemCorners = new Vector3[4];
+        content.GetWorldCorners(contentCorners);
+        item.GetWorldCorners(itemCorners);
+
+        float scale = content.lossyScale.y != 0f ? content.lossyScale.y : 1f;
+        float offset = (contentCorners[1].y - itemCorners[1].y) / scale;
+        scroll.verticalNormalizedPosition = Mathf.Clamp01(1f - offset / scrollable);
     }
 
     private void SaveScrollPosition()

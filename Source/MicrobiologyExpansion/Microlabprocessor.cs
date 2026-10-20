@@ -299,8 +299,8 @@ public class MicroLabProcessor : PartModule
         }
 
         // Refresh codex if open
-        if (MicrobiologyCodexUI.Instance != null && MicrobiologyCodexUI.Instance.IsOpen)
-            MicrobiologyDatabase.Instance.ShowCodexUI();
+        if (MicrobiologyCodexUI.Instance != null)
+            MicrobiologyCodexUI.Instance.Refresh();
 
         Debug.Log($"[Microbiology Expansion] Processing complete. " +
                   $"{processedCount} processed, +{totalScience:F0} science, " +
