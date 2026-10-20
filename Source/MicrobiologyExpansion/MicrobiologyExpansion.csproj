@@ -92,6 +92,7 @@
     <Compile Include="MicrobiologyCore.cs" />
     <Compile Include="MicrobiologyDatabase.cs" />
     <Compile Include="MicroBioscanModule.cs" />
+    <Compile Include="MicrobiologyRibbons.cs" />
     <Compile Include="Microlabprocessor.cs" />
     <Compile Include="Microsamplecollector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
