@@ -246,7 +246,8 @@ public class MicroBioscanModule : PartModule
                 $"<color=#FFAA00>+{discovered.AdjustedScienceValue} Science</color>",
                 5f, ScreenMessageStyle.UPPER_CENTER);
 
-            MicrobiologyDatabase.Instance.ShowCodexUI();
+            if (MicrobiologyCodexUI.Instance != null)
+                MicrobiologyCodexUI.Instance.ShowMicrobe(discovered);
         }
         else
         {
