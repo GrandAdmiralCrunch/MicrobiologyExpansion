@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.2
+
+### New
+- **Final Frontier ribbons are now awarded automatically.** When a kerbal discovers a microbe, they now get the matching ribbons on their own: First Biosignature, first life on each world, Microbiologist (10 species), Exobiologist (first discovery beyond Kerbin) and Astrobiologist (life on 5 worlds). Before, you had to award them by hand from the Hall of Fame. Final Frontier is still optional, and ribbons that don't have artwork yet are skipped. Thanks to **celino** (#8).
+
+### Fixes
+- **The Codex no longer closes when you make a discovery.** A new discovery used to toggle the Codex, which closed it if it was already open. Now the Codex opens (or refreshes) scrolled to the new microbe, and clears any filters that would hide it. Processing samples in the Mobile Processing Lab refreshes an open Codex without closing it. Thanks to **celino** (#7).
+
+### Compatibility
+- Saves from v0.2.1 are fully compatible.
+
 ## v0.2.1 — Bugfix patch
 
 ### Fixes
